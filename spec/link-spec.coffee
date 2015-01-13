@@ -1,7 +1,10 @@
+{ $ } = require 'atom'
 shell = require 'shell'
 
 describe "link package", ->
   beforeEach ->
+    atom.workspaceView = atom.views.getView(atom.workspace)
+
     waitsForPromise ->
       atom.packages.activatePackage('language-gfm')
 
@@ -13,7 +16,7 @@ describe "link package", ->
 
     waitsForPromise ->
       activationPromise = atom.packages.activatePackage('link')
-      atom.commands.dispatch(atom.views.getView(atom.workspace), 'link:open')
+      atom.commands.dispatch(atom.workspaceView, 'link:open')
       activationPromise
 
   describe "when the cursor is on a link", ->
@@ -31,6 +34,14 @@ describe "link package", ->
 
         editor.setCursorBufferPosition([0,4])
         atom.commands.dispatch(atom.views.getView(editor), 'link:open')
+
+        expect(shell.openExternal).toHaveBeenCalled()
+        expect(shell.openExternal.argsForCall[0][0]).toBe 'http://github.com'
+
+        shell.openExternal.reset()
+        editor.setCursorBufferPosition([0,4])
+        e = $.Event 'click', metaKey: true
+        atom.workspaceView.trigger e
 
         expect(shell.openExternal).toHaveBeenCalled()
         expect(shell.openExternal.argsForCall[0][0]).toBe 'http://github.com'
